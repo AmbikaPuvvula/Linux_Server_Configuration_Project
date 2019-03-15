@@ -17,12 +17,15 @@ Take a baseline installation of a Linux distribution on a virtual machine and pr
 1.Get server
 
 2.Secure server
+
 	a.Change the SSH port from 22 to 2200
+	
 	b.Configure the Uncomplicated Firewall (UFW) as SSH (port 2200), HTTP (port 80), and NTP (port 123).
 	
 3.Create a `grader` user
 
 4.Prepare and Deploy project
+
 	a.Configure timezone,Apache,PostgreSQL,git
 
 # 1.Get a server
