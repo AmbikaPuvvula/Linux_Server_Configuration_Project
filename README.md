@@ -340,7 +340,7 @@ Step 13.3: Set up the Flask application
 		
   		 Run: `python database_setup.py`.
 		 
-  		 	  `python database_setup.py`.
+  		 	  `python database_init.py`.
 			  
 		Deactivate the virtual environment: `deactivate`.
 		
