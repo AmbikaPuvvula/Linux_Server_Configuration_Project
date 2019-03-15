@@ -87,21 +87,34 @@ allows you to install new packages when needed
 # Give grader access
 
 Step 5: Create a new user account named grader
+
 	- While logged in as ubuntu, add user: ```sudo adduser grader```.
+	
 	- Enter a password (twice) and fill out information for this new user.
 Step 6: Give grader the permission to sudo
+
 	- Edits the sudoers file: ```sudo visudo```.
+	
 	- Search for the line that looks like this:
+	
 	- ```root    ALL=(ALL:ALL) ALL```
 Below this line, add a new line to give sudo privileges to grader user.
+
 	```root    ALL=(ALL:ALL) ALL```
+	
 	```grader  ALL=(ALL:ALL) ALL```
 Save and exit using CTRL+X and confirm with Y.
+
 Verify that grader has sudo permissions. Run ```su - grader```, enter the password.
+
 Step 7: Create an SSH key pair for grader
+
 Configure key-based authentication for grader user
+
 	- create .ssh folder by ```mkdir /home/grader/.ssh```
+	
 	- Run this command ```sudo cp /home/ubuntu/.ssh/authorized_keys /home/grader/.ssh/authorized_keys```
+	
 	- change ownership ```chown grader.grader /home/grader/.ssh```
 	- add 'grader' to sudo group ```usermod -a G sudo grader```
 	- change permissions for .ssh folder ```chmod 0700 /home/grader/.ssh/```, for authorized_keys ```chmod 644 authorized_keys```
