@@ -31,30 +31,48 @@ Take a baseline installation of a Linux distribution on a virtual machine and pr
 # 1.Get a server
 
 * Step 1: Start a new Ubuntu Linux server instance on Amazon EC2
+
 	- Login to aws.amazon.com and login to default user (ubuntu)
+	
 	- Choose EC2 and Launch Instance with appropriate settings.
+	
 	- Check for instance IPv4 public IP - 54.202.150.11
+	
 	- we can download a .pem file and connect with following command
+	
 	  ```ssh -i Itemcatalog.pem ubuntu@54.202.150.11```
+	  
 	- 22 is Port by Default,Later we need to change it to 2200 as per the udacity-linux-server-configuration rubrics.
 
 # 2.Secure the server
+
 * Step 2: Update and upgrade installed packages
+
 	```sudo apt-get update```
 	```sudo apt-get upgrade```
+	
 Trying to run these commands wont install packages kept back,then use
+
 	```sudo apt-get dist-upgrade```
+	
 allows you to install new packages when needed
 
 * Step 3: Change the SSH port from 22 to 2200
+
 	- Edit the /etc/ssh/sshd_config file: ```sudo vi /etc/ssh/sshd_config```.
+	
 	- Change the port number on line 5 from 22 to 2200.
+	
 	- Save and exit using esc and confirm with :wq.
+	
 	- Restart SSH: ```sudo service ssh restart```.
+	
 	- Change inbound rules in Amazon EC2 --> Type : Custom TCP Rule as 2200
+	
 	- To check port 2200 wether working or not by ```ssh -i Itemcatalog.pem -p 2200 ubuntu@54.202.150.11```
 
 * Step 4: Configure the Uncomplicated Firewall (UFW)
+
 	- Configure the default firewall for Ubuntu to only allow incoming connections for SSH (port 2200), HTTP (port 80),and NTP (port 123).
 	```
 	sudo ufw status                  # The UFW should be inactive.
@@ -66,9 +84,13 @@ allows you to install new packages when needed
   	sudo ufw deny 22                 # Deny tcp and udp packets on port 53.
   	```
   	- Turn UFW on: ```sudo ufw enable```. The output should be like this:
+	
   		Command may disrupt existing ssh connections. Proceed with operation (y|n)? y
+		
 		Firewall is active and enabled on system startup
+		
 	- Check the status of UFW to list current roles: ```sudo ufw status```.
+	
 	   The output should be like this:
 		```
 		Status: active
@@ -116,91 +138,159 @@ Configure key-based authentication for grader user
 	- Run this command ```sudo cp /home/ubuntu/.ssh/authorized_keys /home/grader/.ssh/authorized_keys```
 	
 	- change ownership ```chown grader.grader /home/grader/.ssh```
+	
 	- add 'grader' to sudo group ```usermod -a G sudo grader```
+	
 	- change permissions for .ssh folder ```chmod 0700 /home/grader/.ssh/```, for authorized_keys ```chmod 644 authorized_keys```
+	
 	- Check in vi /etc/ssh/sshd_config file if PermitRootLogin is set to no
+	
 	- Restart SSH: ```sudo service ssh restart```.
+	
 	- On the local machine, cheking if the grader account working or not by running this command :
+	
 	  ```ssh -i Itemcatalog.pem -p 2200 ubuntu@54.202.150.11```.
 
 # Prepare to deploy the project
 
 Step 8: Configure the local timezone to UTC
+
 	-While logged in as grader, configure the time zone:
+	
 		```sudo dpkg-reconfigure tzdata```. Choose time zone UTC.
 
 Step 9: Install and configure Apache to serve a Python mod_wsgi application
+
 	- While logged in as grader, install Apache:
+	
 		```sudo apt-get install apache2```.
+		
 	- Enter public IP of the Amazon EC2 instance into browser. Check Apache is working or not by executing public IP.
+	
 	- My project is built with Python 3. So, I need to install the Python 3 mod_wsgi package:
+	
 		```sudo apt-get install libapache2-mod-wsgi-py3```.
+		
 	- Enable mod_wsgi using: ```sudo a2enmod wsgi```.
 
 Step 10: Install and configure PostgreSQL
+
 	- ```sudo apt-get install libpq-dev python-dev```
+	
 	- ```sudo apt-get install postgresql postgresql-contrib```
+	
 	- ```sudo su - postgres```
+	
 	- ```psql```
+	
 	- ```CREATE USER catalog WITH PASSWORD 'catalog';```
+	
 	- ```ALTER USER catalog CREATEDB;```
+	
 	- ```CREATE DATABASE catalog WITH OWNER catalog;```
+	
 	- ```\c catalog```
+	
 	- ```REVOKE ALL ON SCHEMA public FROM public;```
+	
 	- ```GRANT ALL ON SCHEMA public TO catalog;```
+	
 	- ```\q```
+	
 	- ```exit```
+	
 	- Switch back to the grader user: exit.
 
 Step 11: Install git
+
 	- While logged in as grader, install git: ```sudo apt-get install git```.
 
 # Deploy the catalog project
 
 Step 12.1: Clone and setup catalog project from the GitHub repository
+
 	- While logged in as grader,
+	
 	- cd /var/www
+	
 	- From the /var/www directory, Clone the catalog project:
+	
 		```sudo git clone https://github.com/AmbikaPuvvula/catalog.git```.
+		
 	- ```sudo mkdir catalog```
+	
 	- ```mv !(catalog) catalog``` move files in to catalog directory.
-	- Change the ownership of the catalog directory to grader using: ```sudo chown -R grader:grader catalog/```.
+	
+	- Change the ownership of the catalog directory to grader using:
+	
+	```sudo chown -R grader:grader catalog/```.
+	
 	- Change to the /var/www/catalog/catalog directory.
+	
 		Rename the project.py file to __init__.py using: ```mv project.py __init__.py```.
-	- We need to change sqlite to postgresql create_engine in __init__.py,database_setup.py and lotsofmenus.py,
+		
+	- We need to change sqlite to postgresql create_engine in __init__.py,database_setup.py and database_init.py,
+	
 		search for create engine line and put it in comments
+		
 		#engine = create_engine("sqlite:///catalog.db")
+		
 		then add th following line in place of create engine
+		
 		```engine = create_engine('postgresql://catalog:catalog@localhost/catalog')```
 
 Step 12.2: Authenticate login through Google
+
 	- Go to Google Cloud Platform.(https://console.cloud.google.com/)
+	
 	- Click APIs & services on left menu.
+	
 	- Click Credentials.
+	
 	- Create an OAuth Client ID (under the Credentials tab), and add http://54.202.150.11.xip.io and http://ec2-54-202-150-11.us-west-2.compute.amazonaws.com/ as authorized JavaScript origins.
+	
 	- Add http://54.202.150.11.xip.io/login, http://54.202.150.11.xip.io/gconnect, http://54.202.150.11.xip.io/callback as authorized redirect URI.
+	
 	- Download the corresponding JSON file, open it and copy the contents.
+	
 	- Open /var/www/catalog/catalog/client_secrets.json and paste the previous contents into the this file.
+	
 	- Replace the client ID in templates/login.html file in the project directory.
 
 Step 13.1: Install the virtual environment and dependencies
+
 	- While logged in as grader, install pip: ```sudo apt-get install python3-pip```.
-	- Install the virtual environment: ```sudo apt-get install python-virtualenv```
+	
+	- Install the virtual environment: ```sudo apt-get install python-virtualenv```.
+	
 	- Change to the /var/www/catalog/catalog/ directory.
+	
 	- Create the virtual environment: ```sudo virtualenv -p python3 venv3```.
-	- Change the ownership to grader with: ```sudo chown -R grader:grader venv3/```
+	
+	- Change the ownership to grader with: ```sudo chown -R grader:grader venv3/```.
+	
 	- Activate the new environment: ```. venv3/bin/activate```.
+	
 	- Install the following dependencies:
+	
 		```pip install httplib2```
+		
 		```pip install requests```
+		
 		```pip install --upgrade oauth2client```
+		
 		```pip install sqlalchemy```
+		
 		```pip install flask```
+		
 		```sudo apt-get install libpq-dev```
+		
 		```pip install psycopg2-binary```
 
 Step 13.2: Set up and enable a virtual host
+
 	- Run this: ```sudo vi /etc/apache2/sites-available/catalog.conf```
+	
 	- Paste this code:
 
 	<VirtualHost *:80>
@@ -225,11 +315,13 @@ Step 13.2: Set up and enable a virtual host
 	</VirtualHost>
 
 
-	- Enable the virtual host sudo a2ensite catalog
+	- Enable the virtual host ```sudo a2ensite catalog```
+	
 	- Enabling site catalog. To activate the new configuration, you need to run: ```service apache2 reload```
 		Reload Apache: ```sudo service apache2 reload```.
 
 Step 13.3: Set up the Flask application
+
 	- Create `/var/www/catalog/catalog.wsgi` file add the following lines:
 		```import sys
     		import logging
@@ -239,17 +331,25 @@ Step 13.3: Set up the Flask application
     		application.secret_key = 'supersecretkey'
     	```   	
     - Restart Apache: ```sudo service apache2 restart```.
+    
     - From the `/var/www/catalog/catalog/` directory, 
+    
   		activate the virtual environment: `. venv3/bin/activate`.
+		
   		 Run: `python database_setup.py`.
+		 
   		 	  `python database_setup.py`.
+			  
 		Deactivate the virtual environment: `deactivate`.
+		
 	- From the `/var/www/catalog/` directory
+	
 		Run : python catalog.wsgi
 
 Step 13.4: Disable the default Apache site
 
 - Disable the default Apache site: `sudo a2dissite 000-default.conf`. 
+
 The following prompt will be returned:
 
   ```
@@ -263,11 +363,13 @@ The following prompt will be returned:
 Step 13.5: Launch the Web Application
 
 - Restart Apache again: `sudo service apache2 restart`.
+
 - Open your browser to http://54.202.150.11.xip.io or http://ec2-54-202-150-11.us-west-2.compute.amazonaws.com.
 
 ## Useful commands
 
  - To get log messages from Apache server: `sudo tail /var/log/apache2/error.log`.
+ 
  - To restart Apache: `sudo service apache2 restart`.
 
 
