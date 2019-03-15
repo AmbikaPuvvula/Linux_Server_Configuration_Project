@@ -49,6 +49,7 @@ Take a baseline installation of a Linux distribution on a virtual machine and pr
 * Step 2: Update and upgrade installed packages
 
 	```sudo apt-get update```
+	
 	```sudo apt-get upgrade```
 	
 Trying to run these commands wont install packages kept back,then use
@@ -104,6 +105,7 @@ allows you to install new packages when needed
   		80/tcp (v6)                ALLOW       Anywhere (v6)             
   		123/udp (v6)               ALLOW       Anywhere (v6)             
   		22 (v6)                    DENY        Anywhere (v6)
+		
   		```
 
 # Give grader access
